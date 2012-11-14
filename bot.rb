@@ -1,28 +1,41 @@
-# require 'faye/websocket'
-# require 'eventmachine'
-
-# EM.run do
-#   ws = Faye::WebSocket::Client.new('ws://localhost:3001')
-
-#   ws.onopen = lambda do |event|
-#     p [:open]
-#     ws.send('Hello, world!')
-#   end
-
-#   ws.onmessage = lambda do |event|
-#     p [:message, event.data]
-#   end
-
-#   ws.onclose = lambda do |event|
-#     p [:close, event.code, event.reason]
-#     ws = nil
-#   end
-# end
 require 'SocketIO'
+
+require_relative './util/world'
+
 client = SocketIO.connect("http://localhost:3001") do
   before_start do
     on_message {|message| puts "incoming message: #{message}"}
-    on_event('news') { |data| puts data.first} # data is an array fo things.
-    on_event('message') { |data| puts data } # data is an array fo things.
+
+    # You have about 2 secs between each tick
+    on_event('tick') { |game_state|
+      puts "Tick received #{game_state.inspect}"
+
+      world = World.new(game_state.first)
+
+      # Bot logic goes here...
+      if world.nearby_players.any?
+        # Random bot likes to fight!
+        emit("attack", {
+          dir: world.nearby_players.first.direction_from(
+            world.position
+          )
+        })
+      else
+        # Random bot moves randomly!
+        emit("move", {
+          dir: world.surrounding_tiles.select(&:floor?).sample.dir
+        })
+      end
+
+      # Valid commands:
+      # emit("move", {dir: "n"})
+      # emit("attack", {dir: "ne"})
+      # emit("pick up", {dir: "ne"})
+      # emit("throw", {dir: "ne"})
+    }
+  end
+
+  after_start do
+    emit("set name", "my bot name")
   end
 end
