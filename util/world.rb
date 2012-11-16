@@ -13,7 +13,7 @@ class World
 
   def initialize(state)
     @position = Point.new(state["you"]["position"])
-    @stash = Stash.new(state["you"]["stash_location"])
+    @stash = Stash.new(state["you"]["stash"])
 
     @nearby_players = []
     for player in state["nearby_players"]
