@@ -9,6 +9,7 @@ require './a_star'
 require './2d_search'
 require './bot'
 require './wallhugger'
+require './stashdropper'
 require './killerstrat'
 require './multistrat'
 require './treasurestrat'
@@ -145,7 +146,7 @@ begin
           # $stderr.puts tile.inspect
           showable = render(tile)
           # $stderr.puts showable.inspect
-          Curses.addstr(showable)
+          Curses.addstr(showable ||= '.')
         end
 
         render_dashboard state

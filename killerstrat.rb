@@ -6,11 +6,11 @@ class Killerstrat < Bot
     if target.nil?
       nil
     else
-      return(['attack', { 'dir' => target[0] }])
+      return(['attack', { 'dir' => path_find(target) }])
     end
   end
 
   def path_find(target)
-    'n'
+    to_dir(state['you']['position'], target)
   end
 end

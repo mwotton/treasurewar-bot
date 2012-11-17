@@ -7,6 +7,8 @@ class TreasureSeeker < Bot
   end
   
   def choose(state, tiles)
+    return nil if state['you']['item_in_hand'] != nil
+    return ['pick up', {} ] if tiles[[state['you']['position']['x'], state['you']['position']['y']]]['type'] == 'treasure'
     targets = tiles.select {|x,val|
     
       val['type'] && (val['type'] == 'treasure')
