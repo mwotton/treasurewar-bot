@@ -17,7 +17,12 @@ end
 
 class WallHugger
   def choose(state)
-    return(['move', {dir: 'n'}])
+    if in_space(state)
+      @facing = 'n'
+      return(['move', {dir: 'n'}])
+    else
+      # return(['move', {dir: best_move(state['tiles']
+    end
   end
 end
 
@@ -40,7 +45,7 @@ def update_world(new_tiles, you)
   return_tiles = {}
   sight_tiles = {}
   new_tiles.each do |tile|
-    sight_tiles[[tile['x'], tile['y']]] = tile
+    sight_tiles[[tile['x'], tile['y']]] = tile['type']
   end
   
   you_x = you['position']['x']
@@ -48,7 +53,15 @@ def update_world(new_tiles, you)
   
   all_points(-2,2,-2,2) do |x,y|
     ix = [you_x + x, you_y + y]
-    return_tiles[ix] = sight_tiles[ix].nil? ? ' ' : '#'
+    return_tiles[ix] = case sight_tiles[ix]
+                       when 'floor'
+                         ' '
+                       when 'wall'
+                         '#'
+                       when 'player'
+                       else
+                         sight_tiles[ix].nil? ? '%' : sight_tiles[ix][0].upcase
+                       end
   end
   return_tiles[[you['stash']['x'], you['stash']['y']]] = "S"
   return return_tiles
