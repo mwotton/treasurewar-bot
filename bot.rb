@@ -83,7 +83,7 @@ end
 def reliable_update(dc, key)
   while true
     # tiles.merge!(updates)
-    val = yield
+    val = yield JSON.parse(dc.get(key))
     json = val.to_json
     dc.set(key, json)
     break if dc.get(key) == json
@@ -98,7 +98,7 @@ begin
   Curses::noecho
   Curses::timeout=(0)
   
-  client = SocketIO.connect("http://localhost:8000") do
+  client = SocketIO.connect("http://treasure-war:8000") do
     before_start do
       on_message {|message| puts "incoming message: #{message}"}
 
@@ -108,9 +108,9 @@ begin
         state = game_state.first
         you = state['you']
         
-        tiles = JSON.parse(dc.get('tiles')).collect{|x,y| [eval(x),y]}.to_hash
         updates = update_world(state['tiles'], you)
-        reliable_update(dc,'tiles') do
+        reliable_update(dc,'tiles') do |thing|
+          tiles = thing.collect{|x,y| [eval(x),y]}.to_hash
           tiles.merge!(updates)
         end
         
