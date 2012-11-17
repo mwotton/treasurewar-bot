@@ -66,7 +66,7 @@ auto_explore = true
 
 strategies =  ARGV.collect {|x| Kernel.const_get(x)} rescue [DrunkenWalker]
 $stderr.puts strategies.inspect
-
+strategies = [DrunkenWalker] if strategies.empty?
 strategy = Multistrat.new(strategies.collect &:new)
 
 Curses::init_screen
