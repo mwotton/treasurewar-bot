@@ -119,6 +119,7 @@ begin
           emit(*strategy.choose(state,tiles))
           command = Curses.getch
           auto_explore = false           if command == 'p'
+          dc.set('tiles', "{}")          if command == 'c'
         else
           direction = Curses.getch
           if ['n', 'e', 's', 'w'].include? direction
