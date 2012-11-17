@@ -2,6 +2,10 @@ require 'SocketIO'
 require "curses"
 require './wallhugger'
 require './point'
+require 'dalli'
+require 'json'
+
+dc = Dalli::Client.new('localhost:11211')
 
 class DrunkenWalker
   def choose(state,tiles)
@@ -50,7 +54,11 @@ def update_world(new_tiles, you)
   return return_tiles
 end
 
-tiles = {}
+begin
+  tiles = JSON.parse(dc.get('tiles'))
+rescue
+  tiles = {}
+end
 auto_explore = true
 
 strategy =  (Kernel.const_get(ARGV[0]) rescue DrunkenWalker).new
@@ -73,7 +81,10 @@ begin
         
         state = game_state.first
         you = state['you']
+        
+        tiles = JSON.parse(dc.get('tiles'))
         tiles.merge!(update_world(state['tiles'], you))
+        dc.set('tiles', tiles.to_json)
 
         you_x = you['position']['x']
         you_y = you['position']['y']        
