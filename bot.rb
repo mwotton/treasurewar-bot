@@ -61,7 +61,8 @@ begin
   $stderr.puts "Found tiles: #{tiles.inspect}"
 rescue
   tiles = {}
-  $stderr.puts "Tiles not found."
+  dc.set('tiles', "{}")
+  $stderr.puts "Tiles not found - initialised on server"
 end
 auto_explore = true
 
@@ -70,6 +71,12 @@ strategies =  ARGV.collect {|x| Kernel.const_get(x)} rescue [DrunkenWalker]
 $stderr.puts strategies.inspect
 strategies = [DrunkenWalker] if strategies.empty?
 strategy = Multistrat.new(strategies.collect &:new)
+
+class Array
+  def to_hash
+    self.inject({}) { |h, nvp| h[nvp[0]] = nvp[1]; h }
+  end
+end
 
 Curses::init_screen
 begin
@@ -87,10 +94,15 @@ begin
         state = game_state.first
         you = state['you']
         
-        tiles = JSON.parse(dc.get('tiles'))
+        tiles = JSON.parse(dc.get('tiles')).collect{|x,y| [eval(x),y]}.to_hash
+        $stderr.puts "tiles: #{tiles.to_json}"
+        
         tiles.merge!(update_world(state['tiles'], you))
+        $stderr.puts "updated tiles: #{tiles.to_json}"
         dc.set('tiles', tiles.to_json)
-
+        if dc.get('tiles') != tiles.to_json
+          raise "update failed"
+        end
         you_x = you['position']['x']
         you_y = you['position']['y']        
         
