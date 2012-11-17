@@ -10,7 +10,7 @@ require './treasurestrat'
 
 require './memcache'
 dc = Dalli::Client.new('localhost:11211')
-dc.set('tiles', "{}")          
+
 class DrunkenWalker < Bot
   def choose(state,tiles)
     return(['move', {dir: ['n', 'e', 's', 'w'].sample}])
