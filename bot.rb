@@ -56,21 +56,14 @@ end
 
 tiles = {}
 auto_explore = true
-puts ARGV.inspect
 
-strategy = begin
-             Kernel.const_get(ARGV[0])
-           rescue
-             puts "oops, falling back to drunken walker"
-             DrunkenWalker
-           end.new
+strategy =  (Kernel.const_get(ARGV[0]) rescue DrunkenWalker).new
 
 Curses::init_screen
 begin
   Curses::cbreak
   Curses::noecho
   Curses::timeout=(0)
-  puts strategy.inspect
   
   client = SocketIO.connect("http://localhost:8000") do
     before_start do
