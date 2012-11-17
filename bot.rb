@@ -95,20 +95,22 @@ begin
         you = state['you']
         
         tiles = JSON.parse(dc.get('tiles')).collect{|x,y| [eval(x),y]}.to_hash
-        $stderr.puts "tiles: #{tiles.to_json}"
-        
-        tiles.merge!(update_world(state['tiles'], you))
-        $stderr.puts "updated tiles: #{tiles.to_json}"
-        dc.set('tiles', tiles.to_json)
-        if dc.get('tiles') != tiles.to_json
-          raise "update failed"
+        updates = update_world(state['tiles'], you)
+        while true
+          tiles.merge!(updates)
+          json = tiles.to_json
+          dc.set('tiles', json)
+          break if dc.get('tiles') == json
+          $stderr.puts "looping"
         end
+        
         you_x = you['position']['x']
         you_y = you['position']['y']        
-        
-        all_points((-Curses.cols)/2, Curses.cols/2,
-                   (-Curses.lines)/2, Curses.lines/2) do |xoffset,yoffset|
-          Curses.setpos((Curses.lines / 2) + yoffset, (Curses.cols / 2) + xoffset)
+        cols = Curses.cols
+        lines = Curses.lines
+        all_points((-cols)/2, cols/2,
+                   (-lines)/2, lines/2) do |xoffset,yoffset|
+          Curses.setpos((lines / 2) + yoffset, (cols / 2) + xoffset)
           ix = [you_x + xoffset, you_y + yoffset]
           Curses.addstr(tiles[ix] == nil ? "." : tiles[ix])
         end
