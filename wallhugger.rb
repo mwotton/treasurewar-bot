@@ -5,6 +5,12 @@ class WallHugger < Bot
   def choose(state,tiles)
     @facing ||= 'n'
     @visited ||= {}
+    @clueless ||= 0
+    if @clueless > 15
+      @visited = {}
+      @clueless = 0
+    end
+    
     @visited[state['you']['position']] ||= 0
     @visited[state['you']['position']] += 1
     if in_space(state,tiles)
@@ -14,6 +20,7 @@ class WallHugger < Bot
       if @facing
         return(['move', {dir: @facing}])
       else
+        @clueless+=1
         return nil
       end
     end
