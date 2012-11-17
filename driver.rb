@@ -2,11 +2,13 @@ require 'SocketIO'
 require "curses"
 require './bot'
 require './wallhugger'
+require './killerstrat'
 require './point'
 require 'dalli'
 require 'json'
 require './multistrat'
 require './treasurestrat'
+require './Pickup.rb'
 
 require './memcache'
 dc = Dalli::Client.new('localhost:11211')
@@ -22,7 +24,9 @@ def render_dashboard(state)
   Curses.setpos(Curses.lines / 2, Curses.cols / 2)
   Curses.addstr("P")
   Curses.setpos(1, 1)
-  Curses.addstr("Health: #{state['you']['health']}")
+  you = state['you']
+  treasure = you['item_in_hand'] && you['item_in_hand']['is_treasure']
+  Curses.addstr("Health: #{you['health']} Score: #{you['score']} treasure: #{!!treasure}")
   Curses.refresh
 end
 
@@ -62,10 +66,18 @@ auto_explore = true
 
 name = ARGV.shift
 
-strategies =  ARGV.collect {|x| Kernel.const_get(x)} rescue [DrunkenWalker]
-$stderr.puts strategies.inspect
+strategies = ARGV.collect do |x|
+  begin
+    Kernel.const_get(x)
+  rescue
+    nil
+  end
+end.select {|x| x} 
+
+$stderr.puts "Strats: #{strategies.inspect}"
 strategies = [DrunkenWalker] if strategies.empty?
-strategy = Multistrat.new(strategies.collect{|x| x.new dc })
+$stderr.puts "Strats: #{strategies.inspect}"
+strategy = Multistrat.new(strategies.collect{|x| x.new(dc) })
 
 class Array
   def to_hash
@@ -86,10 +98,10 @@ def render(tile)
   when nil
     '#'
   else
-    $stderr.puts tile.inspect
     tile['type'][0].upcase
   end
 end
+oneshot ||= false
 
 Curses::init_screen
 begin
@@ -105,7 +117,8 @@ begin
       on_event('tick') do |game_state|
         state = game_state.first
         you = state['you']
-        
+
+        # $stderr.puts you
         updates = update_world(state['tiles'], state['nearby_players'], you)
         reliable_update(dc,'tiles') do |thing|
           tiles = thing.collect{|x,y| [eval(x),y]}.to_hash
@@ -130,7 +143,7 @@ begin
 
         render_dashboard state
 
-        if auto_explore
+        if auto_explore || oneshot
           choices = strategy.choose(state,tiles)
           raise "ran out of options" unless choices
           $stderr.puts choices.inspect
@@ -138,13 +151,17 @@ begin
           command = Curses.getch
           auto_explore = false           if command == 'p'
           dc.set('tiles', "{}")          if command == 'c'
+          oneshot = false
         else
           direction = Curses.getch
           if ['n', 'e', 's', 'w'].include? direction
             emit('move', {dir: direction})
           elsif direction == 'p'
             auto_explore = true
+          elsif direction == 'o'
+            oneshot = true
           end
+            
         end
       end
     end
