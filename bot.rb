@@ -58,8 +58,10 @@ end
 
 begin
   tiles = JSON.parse(dc.get('tiles'))
+  $stderr.puts "Found tiles: #{tiles.inspect}"
 rescue
   tiles = {}
+  $stderr.puts "Tiles not found."
 end
 auto_explore = true
 
