@@ -1,5 +1,5 @@
 require './2d_search'
-class Missile < Bot
+class TreasureSeeker < Bot
 
   def initialize(*args)
     @gridsearch = GridSearch.new
@@ -7,16 +7,23 @@ class Missile < Bot
   end
   
   def choose(state, tiles)
-    pos = { 'x' => 5, 'y' => 3 }
-    sq = tiles[[5,3]]
-    $stderr.puts("trying to get to (5,3), currently at #{state['you']['position']}")
-    if sq && sq['type'] && sq['type']=='wall'
-      $stderr.puts "asked me to walk into a wall"
-      return nil
+    targets = tiles.select {|x,val|
+    
+      val['type'] && (val['type'] == 'treasure')
+    }.collect {|x| x[0]}
+    $stderr.puts targets.inspect
+
+    if targets.empty?
+      nil
+    else
+      t=targets.first
+      move = @gridsearch.move(tiles, state['you']['position'], {'x' => t[0], 'y'=>t[1] })
+      if move
+        $stderr.puts("going for #{tiles['x']},#{tiles['y']}")
+        ['move', { dir: move } ]
+      else
+        nil
+      end
     end
-    move = @gridsearch.move(tiles, state['you']['position'], pos)
-    $stderr.puts "missile found #{move.inspect}"
-    return nil unless move
-    return ['move', { dir: move } ]
   end
 end

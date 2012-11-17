@@ -12,6 +12,7 @@ require './wallhugger'
 require './killerstrat'
 require './multistrat'
 require './treasurestrat'
+require './treasure_seeker'
 require './Pickup.rb'
 require './Missile'
 
