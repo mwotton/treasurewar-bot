@@ -76,7 +76,8 @@ def render(tile)
   when 'wall'
     '#'
   when 'player'
-    'P'
+    'P' if tile['name'] == "MrPotatoHead"
+    'E' if tile['name'] != "MrPotatoHead"
   when nil
     'z'
   else
