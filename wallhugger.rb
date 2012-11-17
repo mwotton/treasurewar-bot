@@ -4,6 +4,9 @@ class WallHugger
   include BotUtils
   def choose(state,tiles)
     @facing ||= 'n'
+    @visited ||= {}
+    @visited[state['you']['position']] ||= 0
+    @visited[state['you']['position']] += 1
     if in_space(state,tiles)
       $stderr.puts "floating aimlessly"
       $stderr.flush
@@ -27,13 +30,14 @@ class WallHugger
     $stderr.puts index
     (-1..2).each do |x|
       # $stderr.puts [x,index,@facing].inspect
-      
       next_dir = directions[(x + index) % 4]
       $stderr.puts("considering #{next_dir}")
-      return next_dir if free(apply_move(next_dir, state['you']['position']), tiles)
+      next_pos = apply_move(next_dir, state['you']['position'])
+      return next_dir if free(next_pos, tiles) and (!@visited[next_pos] or @visited[next_pos] < 4)
       $stderr.puts("binning #{next_dir}")
     end
-    return 'n' # we are trapped in a maze of twisty passages, all the same.
+    return nil # i got nothin
+
   end
 
   private

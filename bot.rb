@@ -2,6 +2,9 @@ require 'SocketIO'
 require "curses"
 require './wallhugger'
 require './point'
+require './multistrat'
+require './treasurestrat'
+
 
 class DrunkenWalker
   def choose(state,tiles)
@@ -53,10 +56,11 @@ end
 tiles = {}
 auto_explore = true
 
-strategy =  (Kernel.const_get(ARGV[0]) rescue DrunkenWalker).new
-puts strategy.inspect
 
-$stderr.puts strategy.inspect
+strategies =  ARGV.collect {|x| Kernel.const_get(x)} rescue [DrunkenWalker]
+$stderr.puts strategies.inspect
+
+strategy = Multistrat.new(strategies.collect &:new)
 
 Curses::init_screen
 begin
@@ -78,8 +82,8 @@ begin
         you_x = you['position']['x']
         you_y = you['position']['y']        
         
-        all_points((-Curses.lines)/2, Curses.lines/2,
-                   (-Curses.cols)/2, Curses.cols/2) do |xoffset,yoffset|
+        all_points((-Curses.cols)/2, Curses.cols/2,
+                   (-Curses.lines)/2, Curses.lines/2) do |xoffset,yoffset|
           Curses.setpos((Curses.lines / 2) + yoffset, (Curses.cols / 2) + xoffset)
           ix = [you_x + xoffset, you_y + yoffset]
           Curses.addstr(tiles[ix] == nil ? "." : tiles[ix])
