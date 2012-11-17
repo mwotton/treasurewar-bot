@@ -15,20 +15,20 @@ module BotUtils
       w: { x: x-1, y: y} }
   end
 
-  def to_dir(from, to)
+  def self.to_dir(from, to)
     xdiff = to['x'] - from['x']
     ydiff = to['y'] - from['y']
     hash = {
-      [0,1] => 's',
-      [1,1] => 'se',
+      [0,  1] => 's',
+      [1,  1] => 'se',
       [-1, 1] => 'sw',
       
-      [0,-1] => 'n',
-      [1,-1] => 'ne',
+      [0,  -1] => 'n',
+      [1,  -1] => 'ne',
       [-1, -1] => 'nw',
 
       [1,0] => 'e',
-      [0,1] => 'w'
+      [-1,0] => 'w'
     }
     hash[[xdiff,ydiff]]
   end

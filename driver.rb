@@ -120,6 +120,7 @@ begin
 
       # You have about 2 secs between each tick
       on_event('tick') do |game_state|
+        $stderr.puts("tick")
         state = game_state.first
         you = state['you']
 
@@ -150,9 +151,14 @@ begin
 
         if auto_explore || oneshot
           choices = strategy.choose(state,tiles)
-          raise "ran out of options" unless choices
+          if !choices
+            sleep(1000)
+            raise "ran out of options"
+          end
+          
           $stderr.puts choices.inspect
           emit(*choices)
+
           command = Curses.getch
           auto_explore = false           if command == 'p'
           dc.set('tiles', "{}")          if command == 'c'

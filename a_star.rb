@@ -7,7 +7,7 @@ class AStar
     @distance = distance_func
   end
   
-  def find_path(start, goal)
+  def find_path(start, goal, cutoff = 10000000)
     been_there = {}
     pqueue = PriorityQueue.new
     pqueue << [1, [start, [], 0]]
@@ -22,8 +22,12 @@ class AStar
         tcost = @cost.call(spot, newspot)
         next unless tcost
         newcost = cost_so_far + tcost
-        pqueue << [newcost + @distance.call(goal, newspot),
-                   [newspot, newpath, newcost]]
+        if newcost < cutoff
+          pqueue << [newcost + @distance.call(goal, newspot),
+                     [newspot, newpath, newcost]]
+        else
+          $stderr.puts "hit cutoff #{cutoff}: #{newcost}"
+        end
       end
     end
     return nil
