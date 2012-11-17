@@ -1,6 +1,7 @@
-class Killerstrat
+class Killerstrat < Bot
+  include BotUtils
   def choose(state, tiles)
-    target = nearby(state['you']['position']).select{|point, p| p.type == 'player'}.first
+    target = nearby(state['you']['position']).select{|point, p| p['type'] == 'player'}.first
     
     if target.nil?
       nil

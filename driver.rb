@@ -2,6 +2,7 @@ require 'SocketIO'
 require "curses"
 require './bot'
 require './wallhugger'
+require './killerstrat'
 require './point'
 require 'dalli'
 require 'json'
@@ -22,7 +23,7 @@ def render_dashboard(state)
   Curses.setpos(Curses.lines / 2, Curses.cols / 2)
   Curses.addstr("P")
   Curses.setpos(1, 1)
-  Curses.addstr("Health: #{state['you']['health']}")
+  Curses.addstr("Health: #{state['you']['health']} Score: #{state['you']['score']}")
   Curses.refresh
 end
 
@@ -62,10 +63,18 @@ auto_explore = true
 
 name = ARGV.shift
 
-strategies =  ARGV.collect {|x| Kernel.const_get(x)} rescue [DrunkenWalker]
-$stderr.puts strategies.inspect
+strategies = ARGV.collect do |x|
+  begin
+    Kernel.const_get(x)
+  rescue
+    nil
+  end
+end.select {|x| x} 
+
+$stderr.puts "Strats: #{strategies.inspect}"
 strategies = [DrunkenWalker] if strategies.empty?
-strategy = Multistrat.new(strategies.collect{|x| x.new dc })
+$stderr.puts "Strats: #{strategies.inspect}"
+strategy = Multistrat.new(strategies.collect{|x| x.new(dc) })
 
 class Array
   def to_hash
@@ -86,7 +95,6 @@ def render(tile)
   when nil
     '#'
   else
-    $stderr.puts tile.inspect
     tile['type'][0].upcase
   end
 end
