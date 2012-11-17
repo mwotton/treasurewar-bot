@@ -22,7 +22,7 @@ def render_dashboard(state)
   Curses.setpos(Curses.lines / 2, Curses.cols / 2)
   Curses.addstr("P")
   Curses.setpos(1, 1)
-  Curses.addstr("Health: #{state['you']['health']} Treasure: #{state['nearby_treasure'].inspect}")
+  Curses.addstr("Health: #{state['you']['health']}")
   Curses.refresh
 end
 
