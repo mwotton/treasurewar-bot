@@ -10,7 +10,7 @@ require './treasurestrat'
 
 require './memcache'
 dc = Dalli::Client.new('localhost:11211')
-
+dc.set('tiles', "{}")          
 class DrunkenWalker < Bot
   def choose(state,tiles)
     return(['move', {dir: ['n', 'e', 's', 'w'].sample}])
@@ -27,29 +27,21 @@ def render_dashboard(state)
 end
 
 def update_world(new_tiles, you)
-  return_tiles = {}
   sight_tiles = {}
   new_tiles.each do |tile|
-    sight_tiles[[tile['x'], tile['y']]] = tile['type']
+    sight_tiles[[tile['x'], tile['y']]] = tile
   end
   
-  you_x = you['position']['x']
-  you_y = you['position']['y']
+ # you_x = you['position']['x']
+ # you_y = you['position']['y']
   
-  all_points(-2,2,-2,2) do |x,y|
-    ix = [you_x + x, you_y + y]
-    return_tiles[ix] = case sight_tiles[ix]
-                       when 'floor'
-                         ' '
-                       when 'wall'
-                         '#'
-                       when 'player'
-                       else
-                         sight_tiles[ix].nil? ? '.' : sight_tiles[ix][0].upcase
-                       end
-  end
-  return_tiles[[you['stash']['x'], you['stash']['y']]] = "S"
-  return return_tiles
+ # all_points(-2,2,-2,2) do |x,y|
+ #    ix = [you_x + x, you_y + y]
+    
+    
+ # end
+  # return_tiles[[you['stash']['x'], you['stash']['y']]] = "S"
+  return sight_tiles
 end
 
 begin
@@ -73,6 +65,23 @@ strategy = Multistrat.new(strategies.collect{|x| x.new dc })
 class Array
   def to_hash
     self.inject({}) { |h, nvp| h[nvp[0]] = nvp[1]; h }
+  end
+end
+
+def render(tile)
+  return '.' if tile.nil?
+  case tile['type']
+  when 'floor'
+    ' '
+  when 'wall'
+    '#'
+  when 'player'
+    'P'
+  when nil
+    'z'
+  else
+    $stderr.puts tile.inspect
+    tile['type'][0].upcase
   end
 end
 
@@ -105,8 +114,13 @@ begin
         all_points((-cols)/2, cols/2,
                    (-lines)/2, lines/2) do |xoffset,yoffset|
           Curses.setpos((lines / 2) + yoffset, (cols / 2) + xoffset)
-          ix = [you_x + xoffset, you_y + yoffset]
-          Curses.addstr(tiles[ix] == nil ? "." : tiles[ix])
+          # $stderr.puts tiles.inspect
+          # $stderr.puts [you_x,xoffset, you_y,yoffset].inspect
+          tile = tiles[[you_x + xoffset, you_y + yoffset]]
+          # $stderr.puts tile.inspect
+          showable = render(tile)
+          # $stderr.puts showable.inspect
+          Curses.addstr(showable)
         end
 
         render_dashboard state

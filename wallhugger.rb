@@ -21,7 +21,7 @@ class WallHugger < Bot
 
   def in_space(state, tiles)
     s = surrounding(state['you']['position'])
-    s.all? {|x| tiles[x] != '#'}
+    s.all? {|x| tiles[x]['type'] != 'wall'}
   end
   
   def best_move(state, tiles)
@@ -40,7 +40,7 @@ class WallHugger < Bot
   private
 
   def free(pos, tiles)
-    tiles[[pos['x'], pos['y']]] != '#'
+    tiles[[pos['x'], pos['y']]]['type'] != 'wall'
   end
   
   def apply_move(dir, pos)
