@@ -1,37 +1,11 @@
 require 'SocketIO'
 require "curses"
-
-def all_points(left, right, top, bottom)
-  (top..bottom).each do |x|
-    (left..right).each do |y|
-      yield x,y
-    end
-  end
-end
+require './wallhugger'
+require './point'
 
 class DrunkenWalker
-  def choose(state)
+  def choose(state,tiles)
     return(['move', {dir: ['n', 'e', 's', 'w'].sample}])
-  end
-end
-
-class WallHugger
-  def choose(state)
-    if in_space(state)
-      @facing = 'n'
-      return(['move', {dir: 'n'}])
-    else
-      return(['move', {dir: best_move(state['tiles'])}])
-    end
-  end
-
-  def in_space(state)
-    true
-  end
-  
-  def best_move(tiles)
-    $stderr.puts tiles.inspect
-    return 'e'
   end
 end
 
@@ -80,6 +54,9 @@ tiles = {}
 auto_explore = true
 
 strategy =  (Kernel.const_get(ARGV[0]) rescue DrunkenWalker).new
+puts strategy.inspect
+
+$stderr.puts strategy.inspect
 
 Curses::init_screen
 begin
@@ -111,7 +88,7 @@ begin
         render_dashboard state
 
         if auto_explore
-          emit(*strategy.choose(state))
+          emit(*strategy.choose(state,tiles))
           command = Curses.getch
           auto_explore = false           if command == 'p'
         else
