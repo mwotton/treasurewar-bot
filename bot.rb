@@ -21,8 +21,17 @@ class WallHugger
       @facing = 'n'
       return(['move', {dir: 'n'}])
     else
-      # return(['move', {dir: best_move(state['tiles']
+      return(['move', {dir: best_move(state['tiles'])}])
     end
+  end
+
+  def in_space(state)
+    true
+  end
+  
+  def best_move(tiles)
+    $stderr.puts tiles.inspect
+    return 'e'
   end
 end
 
@@ -60,7 +69,7 @@ def update_world(new_tiles, you)
                          '#'
                        when 'player'
                        else
-                         sight_tiles[ix].nil? ? '%' : sight_tiles[ix][0].upcase
+                         sight_tiles[ix].nil? ? '.' : sight_tiles[ix][0].upcase
                        end
   end
   return_tiles[[you['stash']['x'], you['stash']['y']]] = "S"
