@@ -17,7 +17,7 @@ end
 
 class WallHugger
   def choose(state)
-
+    return(['move', {dir: 'n'}])
   end
 end
 
@@ -56,7 +56,14 @@ end
 
 tiles = {}
 auto_explore = true
-strategy = DrunkenWalker.new
+puts ARGV.inspect
+
+strategy = begin
+             Kernel.const_get(ARGV[0])
+           rescue
+             puts "oops, falling back to drunken walker"
+             DrunkenWalker
+           end.new
 
 Curses::init_screen
 begin
