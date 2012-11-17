@@ -8,13 +8,14 @@ class WallHugger
     @visited[state['you']['position']] ||= 0
     @visited[state['you']['position']] += 1
     if in_space(state,tiles)
-      $stderr.puts "floating aimlessly"
-      $stderr.flush
       return(['move', {dir: 'n'}])
     else
-      $stderr.puts "man on a mission: #{@facing}"
-      $stderr.flush
-      return(['move', {dir: @facing = best_move(state, tiles)}])
+      @facing = best_move(state, tiles)
+      if @facing
+        return(['move', {dir: @facing}])
+      else
+        return nil
+      end
     end
   end
 
@@ -25,16 +26,12 @@ class WallHugger
   
   def best_move(state, tiles)
     directions = %w{ n w s e }
-    $stderr.puts @facing
     index = directions.index @facing
-    $stderr.puts index
     (-1..2).each do |x|
       # $stderr.puts [x,index,@facing].inspect
       next_dir = directions[(x + index) % 4]
-      $stderr.puts("considering #{next_dir}")
       next_pos = apply_move(next_dir, state['you']['position'])
       return next_dir if free(next_pos, tiles) and (!@visited[next_pos] or @visited[next_pos] < 4)
-      $stderr.puts("binning #{next_dir}")
     end
     return nil # i got nothin
 

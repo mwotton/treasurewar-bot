@@ -67,6 +67,8 @@ end
 auto_explore = true
 
 
+name = ARGV.shift
+
 strategies =  ARGV.collect {|x| Kernel.const_get(x)} rescue [DrunkenWalker]
 $stderr.puts strategies.inspect
 strategies = [DrunkenWalker] if strategies.empty?
@@ -75,6 +77,18 @@ strategy = Multistrat.new(strategies.collect &:new)
 class Array
   def to_hash
     self.inject({}) { |h, nvp| h[nvp[0]] = nvp[1]; h }
+  end
+end
+
+def reliable_update(dc, key)
+  while true
+    # tiles.merge!(updates)
+    val = yield
+    json = val.to_json
+    dc.set(key, json)
+    break if dc.get(key) == json
+    sleep(rand(100) * 0.001)
+    $stderr.puts "looping"
   end
 end
 
@@ -96,12 +110,8 @@ begin
         
         tiles = JSON.parse(dc.get('tiles')).collect{|x,y| [eval(x),y]}.to_hash
         updates = update_world(state['tiles'], you)
-        while true
+        reliable_update(dc,'tiles') do
           tiles.merge!(updates)
-          json = tiles.to_json
-          dc.set('tiles', json)
-          break if dc.get('tiles') == json
-          $stderr.puts "looping"
         end
         
         you_x = you['position']['x']
@@ -118,7 +128,10 @@ begin
         render_dashboard state
 
         if auto_explore
-          emit(*strategy.choose(state,tiles))
+          choices = strategy.choose(state,tiles)
+          raise "ran out of options" unless choices
+          $stderr.puts choices.inspect
+          emit(*choices)
           command = Curses.getch
           auto_explore = false           if command == 'p'
           dc.set('tiles', "{}")          if command == 'c'
@@ -134,7 +147,7 @@ begin
     end
 
     after_start do
-      emit("set name", "XenphClient v0.1")
+      emit("set name", name)
     end
   end
 ensure
