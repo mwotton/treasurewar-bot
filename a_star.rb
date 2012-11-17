@@ -1,3 +1,5 @@
+require './priority_queue'
+
 class AStar
   def initialize(adjacency_func, cost_func, distance_func)
     @adjacency = adjacency_func

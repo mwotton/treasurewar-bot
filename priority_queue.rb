@@ -3,6 +3,8 @@ class PriorityQueue
     @list = []
   end
   def add(priority, item)
+    $stderr.puts priority.inspect
+    $stderr.puts item.inspect
     @list << [priority, @list.length, item]
     @list.sort!
     self

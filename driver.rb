@@ -1,14 +1,19 @@
 require 'SocketIO'
 require "curses"
-require './bot'
-require './wallhugger'
-require './killerstrat'
+
 require './point'
 require 'dalli'
 require 'json'
+
+require './a_star'
+require './2d_search'
+require './bot'
+require './wallhugger'
+require './killerstrat'
 require './multistrat'
 require './treasurestrat'
 require './Pickup.rb'
+require './Missile'
 
 require './memcache'
 dc = Dalli::Client.new('localhost:11211')
