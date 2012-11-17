@@ -23,12 +23,6 @@ def render_dashboard(state)
   Curses.addstr("P")
   Curses.setpos(1, 1)
   Curses.addstr("Health: #{state['you']['health']} Treasure: #{state['nearby_treasure'].inspect}")
-  Curses.setpos(2, 1)
-  Curses.addstr("Stashes: #{state['nearby_stashes'].inspect}")
-  Curses.setpos(3, 1)
-  Curses.addstr("Current Position: #{state['you']['position']['x']}, #{state['you']['position']['y']}")
-  Curses.setpos(4, 1)
-  Curses.addstr("Stash Position: #{state['you']['stash']['x']}, #{state['you']['stash']['y']}")
   Curses.refresh
 end
 
