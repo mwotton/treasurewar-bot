@@ -1,6 +1,6 @@
 require './bot_utils'
 
-class WallHugger
+class WallHugger < Bot
   include BotUtils
   def choose(state,tiles)
     @facing ||= 'n'

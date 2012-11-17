@@ -1,6 +1,6 @@
-class Treasurestrat < Bot
+class Killerstrat
   def choose(state, tiles)
-    target = tiles.find{|point, val| val == 'T'}
+    target = tiles.select{|point, val| val == 'P' && !}
     if target
       return(['move', { 'dir' => path_find(target[0])}])
     else
