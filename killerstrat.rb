@@ -1,10 +1,11 @@
 class Killerstrat
   def choose(state, tiles)
-    target = tiles.select{|point, val| val == 'P' && !}
-    if target
-      return(['move', { 'dir' => path_find(target[0])}])
-    else
+    target = nearby(state['you']['position']).select{|point, p| p.type == 'player'}.first
+    
+    if target.nil?
       nil
+    else
+      return(['attack', { 'dir' => target[0] }])
     end
   end
 

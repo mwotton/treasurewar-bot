@@ -26,12 +26,17 @@ def render_dashboard(state)
   Curses.refresh
 end
 
-def update_world(new_tiles, you)
+def update_world(new_tiles, players, you)
   sight_tiles = {}
   new_tiles.each do |tile|
     sight_tiles[[tile['x'], tile['y']]] = tile
   end
-  
+  players.each do |tile|
+    pos = tile.delete 'position'
+    tile['x'] = pos['x']
+    tile['y'] = pos['y']
+    sight_tiles[[pos['x'], pos['y']]] = tile
+  end
  # you_x = you['position']['x']
  # you_y = you['position']['y']
   
@@ -79,7 +84,7 @@ def render(tile)
     'P' if tile['name'] == "MrPotatoHead"
     'E' if tile['name'] != "MrPotatoHead"
   when nil
-    'z'
+    '#'
   else
     $stderr.puts tile.inspect
     tile['type'][0].upcase
@@ -98,11 +103,10 @@ begin
 
       # You have about 2 secs between each tick
       on_event('tick') do |game_state|
-        
         state = game_state.first
         you = state['you']
         
-        updates = update_world(state['tiles'], you)
+        updates = update_world(state['tiles'], state['nearby_players'], you)
         reliable_update(dc,'tiles') do |thing|
           tiles = thing.collect{|x,y| [eval(x),y]}.to_hash
           tiles.merge!(updates)
