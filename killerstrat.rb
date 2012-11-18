@@ -4,7 +4,7 @@ class Killerstrat < Bot
     you = state['you']
     near = surrounding(you['position']).map{|x| tiles[x]}
 
-    target = near.select{|tile| tile['type'] == 'player'}.first
+    target = near.select{|tile| tile['type'] == 'player' && tile['name'] != 'MrPotatoHead'}.first
     
     if target==nil || target.empty?
       nil
