@@ -1,16 +1,16 @@
 class Killerstrat < Bot
   include BotUtils
   def choose(state, tiles)
-    target = nearby(state['you']['position']).select{|point, p| p['type'] == 'player'}.first
+    you = state['you']
+    near = surrounding(you['position']).map{|x| tiles[x]}
+
+    target = near.select{|tile| tile['type'] == 'player'}.first
     
-    if target.nil?
+    if target==nil || target.empty?
       nil
     else
-      return(['attack', { 'dir' => path_find(target) }])
+      $stderr.puts({:state => state, :you => you['position'], :target => target}.inspect)
+      return(['attack', { 'dir' => BotUtils.to_dir(you['position'], target) }])
     end
-  end
-
-  def path_find(target)
-    to_dir(state['you']['position'], target)
   end
 end

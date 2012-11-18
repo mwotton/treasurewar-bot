@@ -38,7 +38,7 @@ class WallHugger < Bot
       # $stderr.puts [x,index,@facing].inspect
       next_dir = directions[(x + index) % 4]
       next_pos = apply_move(next_dir, state['you']['position'])
-      return next_dir if free(next_pos, tiles) and (!@visited[next_pos] or @visited[next_pos] < 4)
+      return next_dir if free(next_pos, tiles) # and (!@visited[next_pos] or @visited[next_pos] < 4)
     end
     return nil # i got nothin
 

@@ -9,8 +9,9 @@ require './a_star'
 require './2d_search'
 require './bot'
 require './wallhugger'
-require './stashdropper'
+require './stashreturner'
 require './killerstrat'
+require './killseeker'
 require './multistrat'
 require './treasurestrat'
 require './treasure_seeker'
@@ -27,13 +28,23 @@ class DrunkenWalker < Bot
 end
 
 
-def render_dashboard(state)
+def render_dashboard(state, strategy)
   Curses.setpos(Curses.lines / 2, Curses.cols / 2)
   Curses.addstr("P")
   Curses.setpos(1, 1)
   you = state['you']
   treasure = you['item_in_hand'] && you['item_in_hand']['is_treasure']
   Curses.addstr("Health: #{you['health']} Score: #{you['score']} treasure: #{!!treasure}")
+  Curses.setpos(2, 1)
+  Curses.addstr("Strategy: #{strategy.describe}")
+  index = 3
+  total = strategy.uses.values.inject(0) {|a,b| a+b}
+  sorted = strategy.uses.to_a.sort_by{|x| (-x[1])}
+  sorted.each do |name, count|
+    Curses.setpos(index, 1)
+    index+=1
+    Curses.addstr("#{name}: #{100*count/total}%, #{count}")
+  end
   Curses.refresh
 end
 
@@ -109,6 +120,7 @@ def render(tile)
   end
 end
 oneshot ||= false
+show_dash = true
 
 Curses::init_screen
 begin
@@ -149,7 +161,7 @@ begin
           Curses.addstr(showable ||= '.')
         end
 
-        render_dashboard state
+        render_dashboard state, strategy if show_dash
 
         if auto_explore || oneshot
           choices = strategy.choose(state,tiles)
@@ -163,15 +175,18 @@ begin
 
           command = Curses.getch
           auto_explore = false           if command == 'p'
+          show_dash = !show_dash         if command == 'd'
           dc.set('tiles', "{}")          if command == 'c'
+          
           oneshot = false
         else
-          direction = Curses.getch
-          if ['n', 'e', 's', 'w'].include? direction
+          command = Curses.getch
+          show_dash = !show_dash         if command == 'd'
+          if ['n', 'e', 's', 'w'].include? command
             emit('move', {dir: direction})
-          elsif direction == 'p'
+          elsif command == 'p'
             auto_explore = true
-          elsif direction == 'o'
+          elsif command == 'o'
             oneshot = true
           end
             

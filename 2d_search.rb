@@ -5,6 +5,7 @@ class GridSearch
   include BotUtils
   def initialize
     @tiles = {}
+    @paths = {}
     @astar = AStar.new(proc { |pos|
                          x=pos['x']
                          y=pos['y']
@@ -16,8 +17,8 @@ class GridSearch
                                (candidate and candidate['type'] and candidate['type'] == 'wall')
 
                              # $stderr.puts(candidate.inspect)
-                             if candidate && candidate['type'] != 'floor'
-                               $stderr.puts candidate['type']
+                             if candidate && candidate['type'] && candidate['type'] != 'floor'
+                           #    $stderr.puts "Candidate: #{candidate['type']}"
                              end
                              res << { 'x' => otherx,"y" =>  othery }
                            end
@@ -35,10 +36,13 @@ class GridSearch
 
   def move(tiles, current, target)
     @tiles = tiles
-
-    path = @astar.find_path(current, target, 100)
-    path.shift # don't care about first step
-    if path.empty?
+    if @paths[[current,target]]
+      path = @paths[[current,target]]
+    else
+      path = @paths[[current,target]] = @astar.find_path(current, target, 100)
+    end
+    path.shift rescue [] # don't care about first step
+    if !path || path.empty?
       $stderr.puts("empty path")
       nil
     else
