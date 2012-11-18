@@ -7,7 +7,7 @@ class StashDropper < Bot
   end
   
   def choose(state, tiles)
-    return nil if state['you']['item_in_hand'] === nil
+    return nil if !state['you']['item_in_hand']
     return ['drop', {} ] if state['you']['position'] == state['you']['stash']
     
     pos = state['you']['stash']
