@@ -1,4 +1,4 @@
-require './2d_search'
+
 class TreasureSeeker < Seeker
 
   def abort?(state, tiles)

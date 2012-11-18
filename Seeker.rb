@@ -13,13 +13,8 @@ class Seeker < Bot
   def matchval(type, state)
     false
   end
-  
-  def choose(state, tiles)
-    you = state['you']
-    return nil if abort?(state,tiles)
-    current_tile = tiles[[you['position']['x'], you['position']['y']]]
-    $stderr.puts current_tile.inspect
-    stash = you['stash']
+
+  def getpath(state, tiles)
     targets = tiles.select {|x,val|
       matchval(val, state)
     }.collect {|x| x[0]}
@@ -28,15 +23,29 @@ class Seeker < Bot
     if targets.empty?
       nil
     else
-      # TODO go for nearest
-      t=nearest(you['position'], targets)
-      move = @gridsearch.move(tiles, state['you']['position'], {'x' => t[0], 'y'=>t[1] })
-      if move
-        $stderr.puts("#{self.class} going for #{t[0]},#{t[1]}")
-        ['move', { dir: move } ]
-      else
-        nil
+      t=targets.first
+      @gridsearch.move(tiles, state['you']['position'], {'x' => t[0], 'y'=>t[1] })
+    end
+
+  end
+  
+  def choose(state, tiles)
+    you = state['you']
+    return nil if abort?(state,tiles)
+    # possible that the @cachedpath is old - check it's reasonable.
+    if @cachedpath && !@cachedpath.empty?
+      if BotUtils.to_dir(you['position'], @cachedpath.first) == nil
+        $stderr.puts "Can't follow #{@cachedpath} from #{you['position']} - resetting"
+        @cachedpath = nil
       end
     end
+    @cachedpath ||= getpath(state,tiles)
+    
+    if @cachedpath && !@cachedpath.empty?
+      best = BotUtils.to_dir(you['position'], @cachedpath.shift)
+      $stderr.puts("#{self.class} going for #{best}")
+      return ['move', { "dir" => best } ]       if best
+    end
+    nil
   end
 end

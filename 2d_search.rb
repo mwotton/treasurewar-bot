@@ -23,40 +23,44 @@ class GridSearch
 
                        proc { |x| 1 },
                        proc { |p1,p2|
+                         # $stderr.puts({p1: p1, p2: p2}.inspect)
                          res = [(p1['x'] - p2['x']).abs,
                                 (p1['y'] - p2['y']).abs].max
-                         $stderr.puts({p1: p1, p2: p2, res: res}.inspect)
+#                         $stderr.puts({p1: p1, p2: p2, res: res}.inspect)
                          res
                        })
   end
 
+
+  
   def move(tiles, current, target)
     @tiles = tiles
     if @paths[[current,target]]
       path = @paths[[current,target]]
     else
-      path = @paths[[current,target]] = @astar.find_path(current, target, 100)
+      path = @paths[[current,target]] = @astar.find_path(current, target, 1000)
     end
-    $stderr.puts({path: path}.inspect)
+    # $stderr.puts({path: path}.inspect)
     # path.shift rescue nil # don't care about first step
     while path.first == current
       path.shift
     end
     
     if !path || path.empty?
-      $stderr.puts("empty path")
+      # $stderr.puts("empty path")
       nil
     else
-      res = BotUtils.to_dir(current, path.first)
-      $stderr.puts({
-                     :next => path.first,
-                     :target => target,
-                     :current => current
-                   }.inspect)
+
+      # $stderr.puts({
+      #                :next => path.first,
+      #                :target => target,
+      #                :current => current
+      #              }.inspect)
     
 
-      $stderr.puts({res: res, current: current, step: path.first}.inspect)
-      res
+      $stderr.puts({ current: current, step: path}.inspect)
+      return path
+      # [path.length, res, path]
     end
   end
 end

@@ -18,9 +18,11 @@ require './killerstrat'
 require './killseeker'
 require './multistrat'
 require './treasurestrat'
+require './Dropper'
+
 require './treasure_seeker'
-require './Pickup.rb'
-require './Missile'
+require './Pickup'
+require './PickupTreasure'
 
 require './memcache'
 dc = Dalli::Client.new('localhost:11211')
@@ -63,14 +65,14 @@ def update_world(new_tiles, players, you)
     tile['y'] = pos['y']
     sight_tiles[[pos['x'], pos['y']]] = tile
   end
- # you_x = you['position']['x']
- # you_y = you['position']['y']
+  # you_x = you['position']['x']
+  # you_y = you['position']['y']
   
- # all_points(-2,2,-2,2) do |x,y|
- #    ix = [you_x + x, you_y + y]
-    
-    
- # end
+  # all_points(-2,2,-2,2) do |x,y|
+  #    ix = [you_x + x, you_y + y]
+  
+  
+  # end
   # return_tiles[[you['stash']['x'], you['stash']['y']]] = "S"
   return sight_tiles
 end
@@ -87,6 +89,11 @@ auto_explore = true
 
 
 name = ARGV.shift
+if name =~ /bot/
+  rendering=false
+else
+  rendering = true
+end
 
 strategies = ARGV.collect do |x|
   begin
@@ -126,85 +133,97 @@ def render(tile)
     tile['type'][0].upcase
   end
 end
-oneshot ||= false
-show_dash = true
 
-Curses::init_screen
-begin
-  Curses::cbreak
-  Curses::noecho
-  Curses::timeout=(0)
-  
-  client = SocketIO.connect("http://treasure-war:8000") do
-    before_start do
-      on_message {|message| puts "incoming message: #{message}"}
+while true
+  begin
+    oneshot ||= false
+    show_dash = true
 
-      # You have about 2 secs between each tick
-      on_event('tick') do |game_state|
-        $stderr.puts("tick")
-        state = game_state.first
-        you = state['you']
+    Curses::init_screen
+    Curses::cbreak
+    Curses::noecho
+    Curses::timeout=(0)
 
-        # $stderr.puts you
-        updates = update_world(state['tiles'], state['nearby_players'], you)
-        reliable_update(dc,'tiles') do |thing|
-          tiles = thing.collect{|x,y| [eval(x),y]}.to_hash
-          tiles.merge!(updates)
-        end
-        
-        you_x = you['position']['x']
-        you_y = you['position']['y']        
-        cols = Curses.cols
-        lines = Curses.lines
-        all_points((-cols)/2, cols/2,
-                   (-lines)/2, lines/2) do |xoffset,yoffset|
-          Curses.setpos((lines / 2) + yoffset, (cols / 2) + xoffset)
-          # $stderr.puts tiles.inspect
-          # $stderr.puts [you_x,xoffset, you_y,yoffset].inspect
-          tile = tiles[[you_x + xoffset, you_y + yoffset]]
-          # $stderr.puts tile.inspect
-          showable = render(tile)
-          # $stderr.puts showable.inspect
-          Curses.addstr(showable ||= '.')
-        end
+    host = "http://treasure-war:8000"
+    #     client = SocketIO.connect("http://mp.local:8000") do
+    client = SocketIO.connect(host) do
 
-        render_dashboard state, strategy if show_dash
+      #    client = SocketIO.connect("http://localhost:8000") do
+      before_start do
+        on_message {|message| puts "incoming message: #{message}"}
 
-        if auto_explore || oneshot
-          choices = strategy.choose(state,tiles)
-          if !choices
-            sleep(1000)
-            raise "ran out of options"
+        # You have about 2 secs between each tick
+        on_event('tick') do |game_state|
+          $stderr.puts("tick")
+          state = game_state.first
+          you = state['you']
+
+          # $stderr.puts you
+          updates = update_world(state['tiles'], state['nearby_players'], you)
+          reliable_update(dc,'tiles') do |thing|
+            tiles = thing.collect{|x,y| [eval(x),y]}.to_hash
+            tiles.merge!(updates)
           end
           
-          $stderr.puts choices.inspect
-          emit(*choices)
+          you_x = you['position']['x']
+          you_y = you['position']['y']
+          if rendering
+            cols = Curses.cols
+            lines = Curses.lines
+            all_points((-cols)/2, cols/2,
+                       (-lines)/2, lines/2) do |xoffset,yoffset|
+              Curses.setpos((lines / 2) + yoffset, (cols / 2) + xoffset)
+              tile = tiles[[you_x + xoffset, you_y + yoffset]]
+              showable = render(tile)
+              Curses.addstr(showable ||= '.')
+            end
 
-          command = Curses.getch
-          auto_explore = false           if command == 'p'
-          show_dash = !show_dash         if command == 'd'
-          dc.set('tiles', "{}")          if command == 'c'
-          
-          oneshot = false
-        else
-          command = Curses.getch
-          show_dash = !show_dash         if command == 'd'
-          if ['n', 'e', 's', 'w'].include? command
-            emit('move', {dir: direction})
-          elsif command == 'p'
-            auto_explore = true
-          elsif command == 'o'
-            oneshot = true
+            render_dashboard state, strategy if show_dash
           end
+          if auto_explore || oneshot
+            choices = strategy.choose(state,tiles)
+            if !choices
+              raise "ran out of options"
+            end
             
+            $stderr.puts choices.inspect
+            emit(*choices)
+            if rendering
+              command = Curses.getch
+              auto_explore = false           if command == 'p'
+              show_dash = !show_dash         if command == 'd'
+              dc.set('tiles', "{}")          if command == 'c'
+              
+              oneshot = false
+            end
+          else
+            if rendering
+              command = Curses.getch
+              show_dash = !show_dash         if command == 'd'
+              if ['n', 'e', 's', 'w'].include? command
+                emit('move', {dir: command})
+              elsif command == 'p'
+                auto_explore = true
+              elsif command == 'o'
+                oneshot = true
+              end
+            end
+          end
         end
       end
-    end
 
-    after_start do
-      emit("set name", name)
+      after_start do
+        emit("set name", name)
+      end
     end
+  rescue Errno::ECONNRESET => e
+    $stderr.puts e.inspect
+    $stderr.puts e.backtrace
+    $stderr.puts e.class
+    
+    dc.set('tiles', "{}")
   end
-ensure
-  Curses::close_screen
 end
+
+Curses::close_screen
+
