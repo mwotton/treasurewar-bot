@@ -6,8 +6,11 @@ require 'dalli'
 require 'json'
 
 require './a_star'
+
 require './2d_search'
 require './bot'
+require './Seeker'
+require './stashseeker'
 require './wallhugger'
 require './stashreturner'
 require './killerstrat'
@@ -95,7 +98,10 @@ end.select {|x| x}
 $stderr.puts "Strats: #{strategies.inspect}"
 strategies = [DrunkenWalker] if strategies.empty?
 $stderr.puts "Strats: #{strategies.inspect}"
-strategy = Multistrat.new(strategies.collect{|x| x.new(dc) })
+gridsearch=  GridSearch.new
+strategy = Multistrat.new(strategies.collect{|x|
+                            x.new(gridsearch: gridsearch,
+                                  dc: dc) })
 
 class Array
   def to_hash

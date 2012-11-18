@@ -15,11 +15,6 @@ class GridSearch
                            # $stderr.puts([otherx,othery].inspect)
                            unless (otherx == x and othery == y) or
                                (candidate and candidate['type'] and candidate['type'] == 'wall')
-
-                             # $stderr.puts(candidate.inspect)
-                             if candidate && candidate['type'] && candidate['type'] != 'floor'
-                           #    $stderr.puts "Candidate: #{candidate['type']}"
-                             end
                              res << { 'x' => otherx,"y" =>  othery }
                            end
                          end
@@ -30,6 +25,7 @@ class GridSearch
                        proc { |p1,p2|
                          res = [(p1['x'] - p2['x']).abs,
                                 (p1['y'] - p2['y']).abs].max
+                         $stderr.puts({p1: p1, p2: p2, res: res}.inspect)
                          res
                        })
   end
@@ -41,7 +37,12 @@ class GridSearch
     else
       path = @paths[[current,target]] = @astar.find_path(current, target, 100)
     end
-    path.shift rescue [] # don't care about first step
+    $stderr.puts({path: path}.inspect)
+    # path.shift rescue nil # don't care about first step
+    while path.first == current
+      path.shift
+    end
+    
     if !path || path.empty?
       $stderr.puts("empty path")
       nil
@@ -54,7 +55,7 @@ class GridSearch
                    }.inspect)
     
 
-      $stderr.puts("res: #{res.inspect}")
+      $stderr.puts({res: res, current: current, step: path.first}.inspect)
       res
     end
   end
