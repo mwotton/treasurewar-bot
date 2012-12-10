@@ -14,19 +14,23 @@ class GridSearch
                            candidate = @tiles[[otherx,othery]]
                            # $stderr.puts([otherx,othery].inspect)
                            unless (otherx == x and othery == y) or
-                               (candidate and candidate['type'] and candidate['type'] == 'wall')
+                               !(candidate and candidate['type']) or
+                               candidate['type'] == 'wall'
                              res << { 'x' => otherx,"y" =>  othery }
                            end
                          end
+
+                         # $stderr.puts ({adjacency: res}.inspect) 
                          res
                        },
 
-                       proc { |x| 1 },
+                       proc { |x| 1},
                        proc { |p1,p2|
                          # $stderr.puts({p1: p1, p2: p2}.inspect)
                          res = [(p1['x'] - p2['x']).abs,
                                 (p1['y'] - p2['y']).abs].max
 #                         $stderr.puts({p1: p1, p2: p2, res: res}.inspect)
+                         # $stderr.puts({distance: res}.inspect)
                          res
                        })
   end
@@ -40,9 +44,9 @@ class GridSearch
     else
       path = @paths[[current,target]] = @astar.find_path(current, target, 1000)
     end
-    # $stderr.puts({path: path}.inspect)
+
     # path.shift rescue nil # don't care about first step
-    while path.first == current
+    while path && path.first == current
       path.shift
     end
     
