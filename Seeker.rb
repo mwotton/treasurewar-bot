@@ -15,16 +15,23 @@ class Seeker < Bot
   end
 
   def getpath(state, tiles)
+    @tiles = tiles
     targets = tiles.select {|x,val|
       matchval(val, state)
     }.collect {|x| x[0]}
     $stderr.puts({targets: targets}.inspect)
 
     if targets.empty?
+      failed if self.respond_to :failed
       nil
     else
-      t=targets.first
-      @gridsearch.move(tiles, state['you']['position'], {'x' => t[0], 'y'=>t[1] })
+#      t=targets.first
+      targets.each do |t|
+        res = @gridsearch.move(tiles, state['you']['position'], {'x' => t[0], 'y'=>t[1] })
+        return res if res
+      end
+      failed if self.respond_to :failed
+      return nil
     end
 
   end

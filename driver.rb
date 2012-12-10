@@ -19,6 +19,7 @@ require './killseeker'
 require './multistrat'
 require './treasurestrat'
 require './Dropper'
+require './edgeseeker'
 
 require './treasure_seeker'
 require './Pickup'
@@ -100,8 +101,6 @@ strategies = ARGV.collect do |x|
 end.select {|x| x} 
 
 $stderr.puts "Strats: #{strategies.inspect}"
-strategies = [DrunkenWalker] if strategies.empty?
-$stderr.puts "Strats: #{strategies.inspect}"
 gridsearch=  GridSearch.new
 strategy = Multistrat.new(strategies.collect{|x|
                             x.new(gridsearch: gridsearch,
@@ -150,7 +149,7 @@ while true
 
         # You have about 2 secs between each tick
         on_event('tick') do |game_state|
-          $stderr.puts("tick")
+
           state = game_state.first
           you = state['you']
 
@@ -163,6 +162,8 @@ while true
           
           you_x = you['position']['x']
           you_y = you['position']['y']
+          $stderr.puts("tick: #{you_x}, #{you_y}")
+          $stderr.puts(game_state.inspect)
           if rendering
             cols = Curses.cols
             lines = Curses.lines
