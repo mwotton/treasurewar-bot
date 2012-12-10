@@ -96,11 +96,7 @@ else
 end
 
 strategies = ARGV.collect do |x|
-  begin
-    Kernel.const_get(x)
-  rescue
-    nil
-  end
+  Kernel.const_get(x)
 end.select {|x| x} 
 
 $stderr.puts "Strats: #{strategies.inspect}"
@@ -144,7 +140,7 @@ while true
     Curses::noecho
     Curses::timeout=(0)
 
-    host = "http://treasure-war:8000"
+    host = "http://localhost:8000"
     #     client = SocketIO.connect("http://mp.local:8000") do
     client = SocketIO.connect(host) do
 
